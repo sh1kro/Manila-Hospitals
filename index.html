@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manila Hospital Classifications</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Google Font: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Base styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+        
+        /* Video Background */
+        #video-bg {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -10;
+            object-fit: cover; /* Cover the entire screen */
+            filter: brightness(0.7); /* Dim the video slightly for text contrast */
+        }
+        
+        /* "Liquid Smooth" Glass Effect Class */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.7); /* Light, semi-transparent background */
+            backdrop-filter: blur(12px); /* The "glass" blur effect */
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border */
+        }
+        
+        /* Active filter button style */
+        .filter-btn.active {
+            background-color: #3B82F6; /* blue-500 */
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-900">
+
+    <!-- Video Background -->
+    <video autoplay loop muted playsinline id="video-bg">
+        <!-- Using a royalty-free stock video related to medical/hospital -->
+        <source src="https://videos.pexels.com/video-files/5453837/5453837-hd_1920_1080_25fps.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <!-- Main Content Wrapper -->
+    <div class="relative min-h-screen w-full px-4 py-8 md:px-8 md:py-12">
+        
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-6xl font-bold text-white shadow-lg" style="text-shadow: 0 2px 4px rgba(0,0,0,0.4);">
+                Manila Hospital Classifications
+            </h1>
+            <p class="text-lg md:text-xl text-gray-200 mt-2" style="text-shadow: 0 1px 3px rgba(0,0,0,0.3);">
+                Explore Primary, Secondary, and Tertiary facilities.
+            </p>
+        </header>
+
+        <!-- Filter Buttons (Sticky) -->
+        <nav class="sticky top-4 z-30 w-full flex justify-center py-4">
+            <div class="flex flex-wrap justify-center gap-2 md:gap-4 glass-effect shadow-xl rounded-full p-2">
+                <button onclick="filterHospitals('All', this)" class="filter-btn active transition-all duration-300 py-2 px-5 rounded-full text-sm md:text-base font-medium hover:bg-blue-400 hover:text-white">
+                    All
+                </button>
+                <button onclick="filterHospitals('Primary', this)" class="filter-btn transition-all duration-300 py-2 px-5 rounded-full text-sm md:text-base font-medium hover:bg-blue-400 hover:text-white">
+                    Primary
+                </button>
+                <button onclick="filterHospitals('Secondary', this)" class="filter-btn transition-all duration-300 py-2 px-5 rounded-full text-sm md:text-base font-medium hover:bg-blue-400 hover:text-white">
+                    Secondary
+                </button>
+                <button onclick="filterHospitals('Tertiary', this)" class="filter-btn transition-all duration-300 py-2 px-5 rounded-full text-sm md:text-base font-medium hover:bg-blue-400 hover:text-white">
+                    Tertiary
+                </button>
+                <button onclick="filterHospitals('Unclassified', this)" class="filter-btn transition-all duration-300 py-2 px-5 rounded-full text-sm md:text-base font-medium hover:bg-blue-400 hover:text-white">
+                    Unclassified
+                </button>
+            </div>
+        </nav>
+
+        <!-- Hospital Grid -->
+        <main id="hospital-grid" class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+            <!-- Hospital cards will be dynamically inserted here by JavaScript -->
+        </main>
+
+    </div>
+
+    <!-- Modal (Hidden by Default) -->
+    <div id="hospital-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70 backdrop-blur-sm hidden transition-opacity duration-300" onclick="closeModal()">
+        
+        <div class="glass-effect shadow-2xl rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto transition-transform duration-300 transform scale-95" onclick="event.stopPropagation()">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-5 md:p-6 border-b border-gray-300">
+                <div>
+                    <h2 id="modal-title" class="text-2xl md:text-3xl font-bold text-blue-800">Hospital Name</h2>
+                    <p id="modal-level-type" class="text-lg text-gray-600">Level & Type</p>
+                </div>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-900 transition-colors rounded-full p-2 text-2xl leading-none">&times;</button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-5 md:p-6">
+                <!-- Address -->
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Location</h3>
+                    <p id="modal-address" class="text-gray-700">
+                        <!-- Address will be injected here -->
+                    </p>
+                </div>
+
+                <!-- Key Officers -->
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Key Officers</h3>
+                    <dl id="modal-officers" class="space-y-3">
+                        <!-- Officers will be injected here -->
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Hospital Data ---
+        // Based on the information you provided
+        const hospitalData = [
+            // Public Hospitals
+            {
+                id: 1,
+                name: "Philippine General Hospital",
+                type: "Public",
+                level: "Tertiary",
+                address: "Taft Ave, Ermita, Manila, 1000 Metro Manila",
+                director: "Gerardo D. Legaspi, MD",
+                admin: "Apolinario Ericson B. Berberabe, MD",
+                nurse: "Maria Cecilia E. Punzalan, RN, MA"
+            },
+            {
+                id: 2,
+                name: "Ospital ng Maynila Medical Center",
+                type: "Public",
+                level: "Tertiary",
+                address: "Pres. Quirino Ave, Malate, Manila, 1004 Metro Manila",
+                director: "Grace H. Padilla, MD, FPPS, MHA",
+                admin: "Maylyn A. Flores, MBA",
+                nurse: "Analie R. Grayda, RN, MAN, MHM, MBA"
+            },
+            {
+                id: 3,
+                name: "Ospital ng Sampaloc",
+                type: "Public",
+                level: "Secondary",
+                address: "677 Gen. Geronimo St, Sampaloc, Manila, 1008 Metro Manila",
+                director: "Angel Erich R. Sison, MD, FPAFP, TCMac",
+                admin: "N/A",
+                nurse: "Jessie Supnad RN, RM, MAN, LPT",
+                other: "Assistant Hospital Director: Manuel Sotelo III MD"
+            },
+            {
+                id: 4,
+                name: "Tondo Medical Center",
+                type: "Public",
+                level: "Tertiary",
+                address: "Honorio Lopez Blvd, Tondo, Manila, Metro Manila",
+                director: "Maria Isabelita M. Estrella, MD, MHA, FPOGS, CESE, FISA",
+                admin: "MELINDA C. TAN, MPA",
+                nurse: "MA. LALINE V. VERANCES, RN, MAN, PhD"
+            },
+            {
+                id: 5,
+                name: "Dr. Jose Fabella Memorial Hospital",
+                type: "Public",
+                level: "Tertiary",
+                address: "Lope de Vega St, Santa Cruz, Manila, 1003 Metro Manila",
+                director: "Salvador B. Evardone MD, MPH, MHA, CESE",
+                admin: "Lourdes C. Mendoza",
+                nurse: "Ma. Nancy C. Guia, RN"
+            },
+            {
+                id: 6,
+                name: "San Lazaro Hospital",
+                type: "Public",
+                level: "Tertiary",
+                address: "Quiricada St, Santa Cruz, Manila, 1003 Metro Manila",
+                director: "David T. Suplico, MD",
+                admin: "Aida DC. Calma, CE, SE, MSME, ACPE, ASEAN Eng.",
+                nurse: "Ferdinand A. Lazaro, RN, MAN",
+                other: "OIC - CMPS: Iftizar N. Haron, MD, FPSP, MHA"
+            },
+            {
+                id: 7,
+                name: "Gat Andres Bonifacio Memorial Medical Center",
+                type: "Public",
+                level: "Secondary",
+                address: "Delpan St, Tondo, Manila, Metro Manila",
+                director: "Dr. Karl Oliver Laqui",
+                admin: "Miguelito Gonzales, MPH",
+                nurse: "Ms. Cherry Prado, RN, MSN"
+            },
+            {
+                id: 8,
+                name: "Sta. Ana Hospital",
+                type: "Public",
+                level: "Secondary",
+                address: "New Panaderos St, Santa Ana, Manila, 1009 Metro Manila",
+                director: "Dr. Janet del Mundo-Tan",
+                admin: "Midas Capinig",
+                nurse: "John Paulo Del Rosario RN, MAN"
+            },
+            {
+                id: 9,
+                name: "Ospital ng Tondo",
+                type: "Public",
+                level: "Secondary",
+                address: "Jose Abad Santos Ave, Tondo, Manila, Metro Manila",
+                director: "Edwin C. Perez, RN, MD, MBA",
+                admin: "Mary Jane A. Celeridad, MMHOA, MAN, RN",
+                nurse: "Tita Marie S. Salcedo, MAN, RN, RM",
+                other: "OIC- Chief of Clinics: Dinah N. Sia Tan, MD, FPOGS, FPSUOG"
+            },
+            {
+                id: 10,
+                name: "Rosario Reyes Health Center",
+                type: "Public",
+                level: "Primary",
+                address: "Manila, Metro Manila",
+                director: "Chief Teresita L. Lim, M.D., MAN",
+                admin: "Marissa B. Asilo",
+                nurse: "N/A"
+            },
+            // Private Hospitals
+            {
+                id: 11,
+                name: "Chinese General Hospital and Medical Center",
+                type: "Private",
+                level: "Tertiary",
+                address: "286 Blumentritt Rd, Santa Cruz, Manila, 1014 Metro Manila",
+                director: "Dr. Samuel D. Ang, M.D.",
+                admin: "Kelly Hun Sia (CEO)",
+                nurse: "Luna Serrano R.N., M.A.N."
+            },
+            {
+                id: 12,
+                name: "University of Santo Tomas Hospital",
+                type: "Private",
+                level: "Tertiary",
+                address: "España Blvd, Sampaloc, Manila, 1008 Metro Manila",
+                director: "Prof. Charito P. Malong-Consolacion, MD, MHA",
+                admin: "Prof. Analin E. Porto, DEM. RMT",
+                nurse: "Tyona Marie M. Gesite, RN, MAN"
+            },
+            {
+                id: 13,
+                name: "Manila Doctors Hospital",
+                type: "Private",
+                level: "Tertiary",
+                address: "667 United Nations Ave, Ermita, Manila, 1000 Metro Manila",
+                director: "Alberto B. Roxas, MD",
+                admin: "N/A",
+                nurse: "N/A"
+            },
+            {
+                id: 14,
+                name: "Metropolitan Medical Center",
+                type: "Private",
+                level: "Unclassified",
+                address: "1357 G. Masangkay St, Tondo, Manila, 1003 Metro Manila",
+                director: "N/A",
+                admin: "N/A",
+                nurse: "N/A"
+            },
+            {
+                id: 15,
+                name: "Perpetual Succor Hospital",
+                type: "Private",
+                level: "Unclassified",
+                address: "836 F. Cayco St, Sampaloc, Manila, 1008 Metro Manila",
+                director: "N/A",
+                admin: "N/A",
+                nurse: "N/A"
+            },
+            {
+                id: 16,
+                name: "Mary Chiles General Hospital",
+                type: "Private",
+                level: "Tertiary",
+                address: "667 Dalin St, Sampaloc, Manila, 1008 Metro Manila",
+                director: "Dr. Rolando A. Florendo",
+                admin: "Dr. Edwardo A. Florendo",
+                nurse: "Rosie Cabañero"
+            },
+            {
+                id: 17,
+                name: "De Ocampo Memorial Medical Center",
+                type: "Private",
+                level: "Unclassified",
+                address: "2921 Nagtahan St, Santa Mesa, Manila, 1008 Metro Manila",
+                director: "N/A",
+                admin: "N/A",
+                nurse: "N/A"
+            },
+            {
+                id: 18,
+                name: "Jose R. Reyes Memorial Medical Center",
+                type: "Private",
+                level: "Tertiary",
+                address: "Rizal Ave, Santa Cruz, Manila, 1003 Metro Manila",
+                director: "WENCESLAO S. LLAUDERES, MD., FPSNM, MPM-HG.",
+                admin: "ATTY. RUELA C. MENDOZA",
+                nurse: "JOSEPH T. GATCHALIAN, RN., MAN."
+            },
+            {
+                id: 19,
+                name: "Our Lady of Lourdes Hospital",
+                type: "Private",
+                level: "Unclassified",
+                address: "46 P. Sanchez St, Santa Mesa, Manila, 1016 Metro Manila",
+                director: "N/A",
+                admin: "N/A",
+                nurse: "N/A"
+            },
+            {
+                id: 20,
+                name: "ManilaMed",
+                type: "Private",
+                level: "Unclassified",
+                address: "1122 General Luna St, Ermita, Manila, 1000 Metro Manila",
+                director: "N/A",
+                admin: "N/A",
+                nurse: "N/A"
+            }
+        ];
+
+        // --- Global Variables ---
+        const hospitalGrid = document.getElementById('hospital-grid');
+        const modal = document.getElementById('hospital-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalLevelType = document.getElementById('modal-level-type');
+        const modalAddress = document.getElementById('modal-address');
+        const modalOfficers = document.getElementById('modal-officers');
+
+        // --- Functions ---
+
+        /**
+         * Renders all hospital cards into the grid
+         */
+        function renderHospitalCards() {
+            let gridHtml = '';
+            for (const hospital of hospitalData) {
+                
+                let levelColorClass = '';
+                switch(hospital.level) {
+                    case 'Primary':
+                        levelColorClass = 'bg-green-100 text-green-800';
+                        break;
+                    case 'Secondary':
+                        levelColorClass = 'bg-yellow-100 text-yellow-800';
+                        break;
+                    case 'Tertiary':
+                        levelColorClass = 'bg-red-100 text-red-800';
+                        break;
+                    default:
+                        levelColorClass = 'bg-gray-100 text-gray-800';
+                }
+
+                gridHtml += `
+                    <div class="hospital-card glass-effect shadow-lg rounded-xl overflow-hidden transition-all duration-300 ease-in-out hover:shadow-2xl hover:-translate-y-1 cursor-pointer" 
+                         data-level="${hospital.level}" 
+                         onclick="openModal(${hospital.id})">
+                        
+                        <div class="p-5">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-xs font-semibold inline-block py-1 px-3 rounded-full ${levelColorClass}">
+                                    ${hospital.level}
+                                </span>
+                                <span class="text-xs font-medium text-gray-600">${hospital.type}</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2 truncate">${hospital.name}</h3>
+                            <p class="text-sm text-gray-600 truncate">${hospital.address}</p>
+                        </div>
+                        <div class="p-5 bg-gray-50 bg-opacity-50 text-right">
+                            <span class="text-blue-600 font-semibold text-sm">View Details &rarr;</span>
+                        </div>
+                    </div>
+                `;
+            }
+            hospitalGrid.innerHTML = gridHtml;
+        }
+
+        /**
+         * Filters the visible hospital cards based on classification
+         */
+        function filterHospitals(level, buttonElement) {
+            const cards = document.querySelectorAll('.hospital-card');
+            
+            // Handle active button state
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            buttonElement.classList.add('active');
+
+            // Filter cards
+            cards.forEach(card => {
+                if (level === 'All' || card.dataset.level === level) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        /**
+         * Opens and populates the modal with hospital data
+         */
+        function openModal(hospitalId) {
+            const hospital = hospitalData.find(h => h.id === hospitalId);
+            if (!hospital) return;
+
+            // Populate modal content
+            modalTitle.textContent = hospital.name;
+            modalLevelType.textContent = `${hospital.level} Level • ${hospital.type}`;
+            modalAddress.textContent = hospital.address || 'Address not specified';
+
+            // Build officers list
+            let officersHtml = '';
+            if (hospital.director && hospital.director !== 'N/A') {
+                officersHtml += `
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Medical Director</dt>
+                        <dd class="text-lg text-gray-900">${hospital.director}</dd>
+                    </div>
+                `;
+            }
+            if (hospital.admin && hospital.admin !== 'N/A') {
+                officersHtml += `
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Hospital Administrator</dt>
+                        <dd class="text-lg text-gray-900">${hospital.admin}</dd>
+                    </div>
+                `;
+            }
+            if (hospital.nurse && hospital.nurse !== 'N/A') {
+                officersHtml += `
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Chief Nurse / Nursing Director</dt>
+                        <dd class="text-lg text-gray-900">${hospital.nurse}</dd>
+                    </div>
+                `;
+            }
+            if (hospital.other && hospital.other !== 'N/A') {
+                officersHtml += `
+                    <div class="pt-2 mt-2 border-t border-gray-200">
+                        <dt class="text-sm font-medium text-gray-500">Other Officials</dt>
+                        <dd class="text-lg text-gray-900">${hospital.other}</dd>
+                    </div>
+                `;
+            }
+            modalOfficers.innerHTML = officersHtml;
+
+            // Show modal with transition
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.querySelector('div').classList.remove('scale-95');
+            }, 10); // Start transition after display block
+        }
+
+        /**
+         * Closes the modal
+         */
+        function closeModal() {
+            modal.classList.add('opacity-0');
+            modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300); // Wait for transition to finish
+        }
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderHospitalCards();
+        });
+
+    </script>
+
+</body>
+</html>
